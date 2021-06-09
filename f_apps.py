@@ -5947,17 +5947,17 @@ class MainApp(object):
     def get_historyV(self):
         try:
             temp = db.get_data_percobaan()
+            self.indexHistoryV.clear()
+            self.historyV.clear()
+            self.clearLayout(self.verticalLayout_91)
+            self.clearLayout(self.verticalLayout_116)
+
             if(len(temp) > 0):
                 no = 1
                 for items in temp:
                     list_data = dict(items)
                     self.createV_history(list_data, no)
                     no += 1
-            else:
-                self.indexHistoryV.clear()
-                self.historyV.clear()
-                self.clearLayout(self.verticalLayout_91)
-                self.clearLayout(self.verticalLayout_116)
         except Exception as e:
             print("History View Error: ", e)
 
@@ -5984,10 +5984,9 @@ class MainApp(object):
     def createV_history(self, data, nomor):
         # Data
         id_percobaan = data["id_percobaan"]
-        if(id_percobaan not in self.indexHistoryV):
-            self.indexHistoryV.append(id_percobaan)
-            self.VHistory(data, nomor)
-            self.VPresepsi(data, nomor)
+        self.indexHistoryV.append(id_percobaan)
+        self.VHistory(data, nomor)
+        self.VPresepsi(data, nomor)
         self.updateBtnHistory()
 
     def VAkurasi(self, data, nomor):
@@ -7269,7 +7268,7 @@ class Astar(QtCore.QThread):
 
         self.startP = classKirim.start
         self.endP = classKirim.end
-        print(self.startP, self.endP)
+        # print(self.startP, self.endP)
 
         self.gScore = {self.startP: 0}
         self.fScore = {self.startP: self.heuristic(self.startP, self.endP)}
@@ -7304,7 +7303,7 @@ class Astar(QtCore.QThread):
             self.cond_break = False
             # Jarak Aman Terhadap Obstacle
             # enorm_locking = 0.6375 #0.75  # 0.6375
-            enorm_locking = 0.85  # 0.75  # 0.75  # 0.6375
+            enorm_locking = 0.70  # 75  # 0.75  # 0.75  # 0.6375
             # Jarak Minimum Terhadap Titik Tujuan Akhir
             erfin = 0.75
 
@@ -7330,7 +7329,7 @@ class Astar(QtCore.QThread):
                         enorm_finish = np.array(
                             self.endP) - np.array(last_path)
                         enorm_error = np.linalg.norm(enorm_finish)
-                        if(enorm_error <= 0.1875):
+                        if(enorm_error <= 0.1975):
                             self.path.pop(len(self.path) - 1)
                         self.path += [self.endP]
                         self.isLoop = 1
@@ -7399,7 +7398,7 @@ class Astar(QtCore.QThread):
                     self.isCounter = [1, len(self.path)]
                     self.counter()
                 self.emitData()
-                print(round(classKirim.timer[0], 5))
+                #print(round(classKirim.timer[0], 5))
 
     @QtCore.pyqtSlot()
     def emitData(self):
@@ -7425,11 +7424,10 @@ class Astar(QtCore.QThread):
 
 
 class ImprovedAstar():
-
     def __init__(self, path):
         # Jarak Aman Obstacle
         # self.error_obs = 0.6375 #0.810  # 0.6375 #0.810  # 0.825  # 0.6375
-        self.error_obs = 0.65  # 375 #0.810
+        self.error_obs = 0.675  # 375 #0.810
 
         self.startP = classKirim.start
         self.endP = classKirim.end
@@ -7437,6 +7435,7 @@ class ImprovedAstar():
         self.inc = 0
         self.new_path = [self.startP]
         self.length = len(self.last_path)
+        self.last_inc = 0
 
     def path_normalize(self):
         while(self.inc < self.length):
@@ -7445,15 +7444,19 @@ class ImprovedAstar():
             end_point = self.last_path[self.inc]
             counter = self.dda_algorithm(start_point, end_point)
             if(counter):
-                if(self.inc == 0):
+                if(self.inc == 0 or self.last_inc == self.inc):
                     self.inc += 1
+
                 new_node = self.last_path[self.inc - 1]
                 self.new_path.append(new_node)
-            self.inc += 1
+                self.inc = len(self.last_path) - \
+                    (len(self.last_path) - self.inc)
+                self.last_inc = self.inc
+            else:
+                self.inc += 1
         else:
             self.new_path.pop(0)
             self.new_path += [self.endP]
-
         return self.new_path
 
     def dda_algorithm(self, start_pt, end_pt):
@@ -8372,7 +8375,7 @@ if __name__ == "__main__":
         # Local
         directory = "database"
         path = os.path.join(os.getcwd(), directory)
-        file = os.path.join(path, r'path_planning.db.bak2')
+        file = os.path.join(path, r'path_planning.db.algorithm_final')
         check_directory = os.path.isdir(path)
         if(check_directory == False):
             os.mkdir(path)
