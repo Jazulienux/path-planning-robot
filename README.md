@@ -9,4 +9,4 @@
 6. numpy
 
 - Kemudian Pastikan Semua Asset Terdownload / Terclone
-- Running Aplikasi dengan perintah: python3 final_apps.py
+- Running Aplikasi dengan perintah: python3 f_apps.py
